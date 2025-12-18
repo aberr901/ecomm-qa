@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QA Bug Report</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            background: #f4f6fb;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 2em auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px #0002;
+            padding: 2em;
+        }
+        h1 {
+            color: #2d3a4a;
+            text-align: center;
+            margin-bottom: 2em;
+        }
+        .bug-title {
+            cursor: pointer;
+            background: #eaf0fa;
+            padding: 1em;
+            border-radius: 8px;
+            margin-bottom: 1em;
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #1a2940;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+        }
+        .bug-title:hover {
+            background: #d2e3fa;
+        }
+        .expand-indicator {
+            margin-left: auto;
+            font-size: 1.3em;
+            color: #3a4a6a;
+            transition: transform 0.2s;
+        }
+        .bug-title[aria-expanded="true"] .expand-indicator {
+            transform: rotate(90deg);
+        }
+        .bug-details {
+            display: none;
+            margin-bottom: 2em;
+            animation: fadeIn 0.3s;
+            padding: 1em;
+            background: #f9fbfd;
+            border-radius: 8px;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .bug-details ul {
+            margin: 0;
+            padding-left: 1.5em;
+        }
+        .bug-details li {
+            margin-bottom: 0.8em;
+        }
+        .bug-details strong {
+            color: #1a2940;
+        }
+        .screenshots {
+            margin-top: 1em;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5em;
+        }
+        .screenshots img {
+            max-width: 180px;
+            border: 2px solid #eaf0fa;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .screenshots img:hover {
+            transform: scale(1.08);
+            box-shadow: 0 2px 12px #0002;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0; top: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal img {
+            max-width: 90vw;
+            max-height: 90vh;
+            border-radius: 10px;
+            box-shadow: 0 4px 32px #0005;
+        }
+        .modal-close {
+            position: absolute;
+            top: 2em;
+            right: 2em;
+            color: #fff;
+            font-size: 2em;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>QA Bug Report</h1>
+        <div id="bugContainer"></div>
+    </div>
+    <div class="modal" id="imgModal" onclick="closeModal(event)">
+        <span class="modal-close" onclick="closeModal(event)">&times;</span>
+        <img id="modalImg" src="" alt="Zoomed Screenshot">
+    </div>
+    <script>
+        // Bug data structure
+        const bugs = [
+            {
+                id: 1,
+                title: "Not Mobile Friendly",
+                impact: "Many relevant users frequently access the application from mobile devices or tablets. This makes mobile usability critical for daily operations and productivity.",
+                description: "The application UI does not fully adapt to mobile screens. Several elements and spaces fail to resize dynamically, resulting in horizontal scrolling, overlapping text, and fixed-width components that do not fit smaller screens.",
+                stepsToReproduce: [
+                    "Open the application (ecomcentral.app) on a mobile device or tablet.",
+                    "Navigate through the main dashboard, logistics, and payments sections.",
+                    "Observe layout issues, such as side navigation and content areas not resizing, table columns overflowing, and action buttons not adapting to screen width."
+                ],
+                expectedResult: "All UI elements and spaces should resize and adapt dynamically for mobile screens, with no horizontal scrolling or overlapping content.",
+                actualResult: "Some elements remain fixed-width or overflow, causing horizontal scrolling, overlapping or truncated text in tables, and action buttons/filters not fully visible.",
+                recommendedFix: null,
+                screenshots: [
+                    { url: "https://github.com/aberr901/ecomm-qa/blob/main/images/IMG_0307.png?raw=true", alt: "Warehouse Shipments - Mobile" },
+                    { url: "https://github.com/aberr901/ecomm-qa/blob/main/images/IMG_0309.png?raw=true", alt: "Logistics Shipments - Mobile" },
+                    { url: "https://github.com/aberr901/ecomm-qa/blob/main/images/IMG_0308.png?raw=true", alt: "Payments - Mobile" }
+                ]
+            },
+            {
+                id: 2,
+                title: "Bulk Import - No Data Validation (Allows Corrupted Data)",
+                impact: "Critical. Bulk import bypasses all data validation, allowing corrupted and duplicate data into the database. Users discover problems only when trying to edit products later, causing confusion and requiring manual cleanup.",
+                description: "Bulk import accepts any data without validation. Common example: Excel formats large numbers (UPCs) as scientific notation (\"7.29001E+12\"). This gets pasted and imported successfully, creating duplicate malformed UPCs. Import appears successful. Days later, user tries to edit and receives error: \"Failed to update product: UPCs already exist in this entity\"—validation that didn't exist during import.",
+                stepsToReproduce: [
+                    "Copy Excel data with UPCs (may show E notation)",
+                    "Paste into bulk import and complete process",
+                    "No validation warnings appear",
+                    "Products saved with corrupted/duplicate UPCs",
+                    "Later attempt to edit → error prevents save"
+                ],
+                expectedResult: "Bulk import validates data before saving: detect invalid formats, check for duplicates, prevent import until issues resolved.",
+                actualResult: "No validation. Corrupted data enters database silently.",
+                recommendedFix: [
+                    "Add validation layer matching individual product edit validation",
+                    "Parse clipboard as plain text to avoid Excel formatting issues",
+                    "Display validation errors during preview stage",
+                    "<strong>Add database constraints (UNIQUE on UPC) to prevent corruption regardless of input method</strong>"
+                ],
+                screenshots: [
+                    { url: "https://github.com/aberr901/ecomm-qa/blob/main/images/image%20(5).png?raw=true", alt: "Paste Data with E Notation" },
+                    { url: "https://github.com/aberr901/ecomm-qa/blob/main/images/image%20(6).png?raw=true", alt: "Preview with E Notation - No Warnings" },
+                    { url: "https://github.com/aberr901/ecomm-qa/blob/main/images/image%20(2).png?raw=true", alt: "Products Saved with Duplicate UPCs" },
+                    { url: "https://github.com/aberr901/ecomm-qa/blob/main/images/image%20(3).png?raw=true", alt: "Error When Trying to Edit Later" }
+                ],
+                video: "https://camdentrading279-my.sharepoint.com/:v:/g/personal/abraham_vetdist_com/IQCgTg2hHd3nQYni86X0TLoPAffFzFwlxjXwJP5llQptawM?e=Paoj1U&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZy1MaW5rIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXcifX0%3D"
+            },
+            {
+                id: 3,
+                title: "Search - Incomplete Results (Partial Name Matching Fails)",
+                impact: "Users cannot find products using partial names. Search only works for specific parts of product names, missing obvious matches.",
+                description: "Search doesn't properly match all parts of product names. For example, searching \"dummy\" doesn't return \"dummy prod1\" even though \"dummy\" is in the name. Only searching \"prod\" returns the product.",
+                stepsToReproduce: [
+                    "Search for \"dummy\" → no results for \"dummy prod1\"",
+                    "Search for \"prod\" → \"dummy prod1\" appears"
+                ],
+                expectedResult: "Search should match all parts of product name. \"dummy\" should return \"dummy prod1\".",
+                actualResult: "Partial name searches fail inconsistently.",
+                recommendedFix: [
+                    "Implement proper full-text search or tokenized search",
+                    "Index all words in product names individually",
+                    "Support partial matching across entire product name"
+                ],
+                screenshots: [
+                    { url: "https://github.com/aberr901/ecomm-qa/blob/main/images/image%20(7).png?raw=true", alt: "Search 'dummy' - No Results" },
+                    { url: "https://github.com/aberr901/ecomm-qa/blob/main/images/image%20(8).png?raw=true", alt: "Search 'prod' - Results Appear" }
+                ]
+            },
+            {
+                id: 4,
+                title: "Search Performance - Slow Response Time",
+                impact: "Poor user experience. Search takes ~20 seconds with only 66 products. Will be unusable in production with thousands of products.",
+                description: "Search is extremely slow, taking approximately 20 seconds to return results even with a small dataset. No loading indicator shows during processing, leaving users uncertain if the system is working.",
+                stepsToReproduce: [
+                    "Type search term in search bar",
+                    "Wait ~20 seconds for results",
+                    "No loading indicator during wait"
+                ],
+                expectedResult: "Search completes in <2 seconds. Loading indicator shows while processing.",
+                actualResult: "20+ second wait with no feedback.",
+                recommendedFix: [
+                    "<strong>Primary: Optimize search performance</strong> (indexing, query optimization, caching)",
+                    "Add loading spinner/indicator while search processes",
+                    "<strong>If search speed cannot be improved:</strong> Add a search button so users can control when search starts, reducing the annoying auto-search-while-typing behavior"
+                ],
+                screenshots: [
+                    { url: "https://github.com/aberr901/ecomm-qa/blob/main/images/image%20(1).png?raw=true", alt: "Search Results" }
+                ]
+            },
+            {
+                id: 5,
+                title: "No Auto-Refresh After Bulk Import",
+                impact: "User confusion. After bulk import, newly imported products don't appear for several minutes. Must manually refresh to verify import.",
+                description: "Product list doesn't automatically update after bulk import. Takes several minutes before new products become visible, even with manual search.",
+                stepsToReproduce: [
+                    "Complete bulk import",
+                    "Search for imported products → not found",
+                    "Wait several minutes or manually refresh",
+                    "Products now appear"
+                ],
+                expectedResult: "Automatic refresh. Newly imported products immediately visible and searchable.",
+                actualResult: "Several-minute delay. Manual refresh required.",
+                recommendedFix: [
+                    "<strong>Trigger automatic data/search index refresh after import</strong>",
+                    "Show confirmation with count of imported products"
+                ],
+                screenshots: []
+            },
+            {
+                id: 6,
+                title: "Bulk Import - Cannot Set Brand or Category",
+                impact: "Workflow inefficiency. Brand and Category are essential but must be set manually one-by-one after import.",
+                description: "Bulk import doesn't include Brand or Category fields. Must individually edit each product to set these values.",
+                stepsToReproduce: [
+                    "Use bulk import - only ASIN, EAN, SKU, Name, Fulfillment, Market available",
+                    "After import, must open each product to set Brand and Category"
+                ],
+                expectedResult: "Include Brand and Category in bulk import (as Excel columns or bulk-apply settings).",
+                actualResult: "Must set individually after import.",
+                recommendedFix: null,
+                screenshots: [
+                    { url: "https://github.com/aberr901/ecomm-qa/blob/main/images/image%20(5).png?raw=true", alt: "Import Excel Dialog" },
+                    { url: "https://github.com/aberr901/ecomm-qa/blob/main/images/image%20(6).png?raw=true", alt: "Preview Table" }
+                ]
+            }
+        ];
+
+        // Render bugs
+        function renderBugs() {
+            const container = document.getElementById('bugContainer');
+            bugs.forEach(bug => {
+                const bugSection = document.createElement('div');
+                bugSection.className = 'bug-section';
+                
+                const bugTitle = document.createElement('div');
+                bugTitle.className = 'bug-title';
+                bugTitle.setAttribute('onclick', 'toggleBugDetails(this)');
+                bugTitle.setAttribute('aria-expanded', 'false');
+                bugTitle.innerHTML = `Bug ${bug.id}: ${bug.title}<span class="expand-indicator">&#9654;</span>`;
+                
+                const bugDetails = document.createElement('div');
+                bugDetails.className = 'bug-details';
+                
+                let html = `<ul>`;
+                html += `<li><strong>Impact:</strong> ${bug.impact}</li>`;
+                html += `<li><strong>Description:</strong> ${bug.description}</li>`;
+                
+                if (bug.stepsToReproduce && bug.stepsToReproduce.length > 0) {
+                    html += `<li><strong>Steps to Reproduce:</strong><ol>`;
+                    bug.stepsToReproduce.forEach(step => {
+                        html += `<li>${step}</li>`;
+                    });
+                    html += `</ol></li>`;
+                }
+                
+                html += `<li><strong>Expected Result:</strong> ${bug.expectedResult}</li>`;
+                html += `<li><strong>Actual Result:</strong> ${bug.actualResult}</li>`;
+                
+                if (bug.recommendedFix && bug.recommendedFix.length > 0) {
+                    html += `<li><strong>Recommended Fix:</strong><ul>`;
+                    bug.recommendedFix.forEach(fix => {
+                        html += `<li>${fix}</li>`;
+                    });
+                    html += `</ul></li>`;
+                }
+                
+                html += `</ul>`;
+                
+                if (bug.screenshots && bug.screenshots.length > 0) {
+                    html += `<div class="screenshots"><strong>Evidence (Screenshots):</strong><br>`;
+                    bug.screenshots.forEach(screenshot => {
+                        html += `<img src="${screenshot.url}" alt="${screenshot.alt}" onclick="openModal(this)">`;
+                    });
+                    html += `</div>`;
+                }
+                
+                if (bug.video) {
+                    html += `<div style="margin-top: 1em;"><strong>Video Demo:</strong> <a href="${bug.video}" target="_blank" style="color: #1a73e8;">Watch Video</a></div>`;
+                }
+                
+                bugDetails.innerHTML = html;
+                
+                bugSection.appendChild(bugTitle);
+                bugSection.appendChild(bugDetails);
+                container.appendChild(bugSection);
+            });
+        }
+
+        function toggleBugDetails(titleElem) {
+            const details = titleElem.nextElementSibling;
+            const expanded = details.style.display === 'block';
+            details.style.display = expanded ? 'none' : 'block';
+            titleElem.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+        }
+
+        function openModal(imgElem) {
+            const modal = document.getElementById('imgModal');
+            const modalImg = document.getElementById('modalImg');
+            modalImg.src = imgElem.src;
+            modal.style.display = 'flex';
+        }
+
+        function closeModal(event) {
+            if (event.target.classList.contains('modal') || event.target.classList.contains('modal-close')) {
+                document.getElementById('imgModal').style.display = 'none';
+            }
+        }
+
+        // Initialize
+        renderBugs();
+    </script>
+</body>
+</html>
