@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QA Bug Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2em; background: #f9f9f9; }
+        h1 { color: #333; }
+        .bug-section { background: #fff; padding: 1.5em; border-radius: 8px; box-shadow: 0 2px 8px #0001; margin-bottom: 2em; }
+        .screenshots img { max-width: 350px; margin: 1em 1em 1em 0; border: 1px solid #ccc; border-radius: 4px; }
+        .note { color: #555; font-style: italic; margin-top: 1em; }
+        ul { margin-top: 0.5em; }
+    </style>
+</head>
+<body>
+    <h1>QA Bug Report</h1>
+    <div class="bug-section">
+        <h2>Bug 1: Not Mobile Friendly</h2>
+        <ul>
+            <li><strong>Impact:</strong> Many relevant users frequently access the application from mobile devices or tablets. This makes mobile usability critical for daily operations and productivity.</li>
+            <li><strong>Description:</strong> The application UI does not fully adapt to mobile screens. Several elements and spaces fail to resize dynamically, resulting in horizontal scrolling, overlapping text, and fixed-width components that do not fit smaller screens.</li>
+            <li><strong>Steps to Reproduce:</strong>
+                <ol>
+                    <li>Open the application (ecomcentral.app) on a mobile device or tablet.</li>
+                    <li>Navigate through the main dashboard, logistics, and payments sections.</li>
+                    <li>Observe layout issues, such as side navigation and content areas not resizing, table columns overflowing, and action buttons not adapting to screen width.</li>
+                </ol>
+            </li>
+            <li><strong>Expected Result:</strong> All UI elements and spaces should resize and adapt dynamically for mobile screens, with no horizontal scrolling or overlapping content.</li>
+            <li><strong>Actual Result:</strong> Some elements remain fixed-width or overflow, causing horizontal scrolling, overlapping or truncated text in tables, and action buttons/filters not fully visible.</li>
+        </ul>
+        <div class="screenshots">
+            <strong>Evidence (Screenshots):</strong><br>
+            <img src="https://camdentrading279-my.sharepoint.com/:i:/g/personal/abraham_vetdist_com/IQD08nypHkvOSZLjGUoe5h1hATNigWSozXYdiWVQzJX3w4Q?e=dNMyb9" alt="Warehouse Shipments - Mobile">
+            <img src="https://camdentrading279-my.sharepoint.com/:i:/g/personal/abraham_vetdist_com/IQAfGKqwkHHlSKm49yl7DELuAdABLi73MS3rPlYotI8761A?e=WqqG54" alt="Logistics Shipments - Mobile">
+            <img src="https://camdentrading279-my.sharepoint.com/:i:/g/personal/abraham_vetdist_com/IQAkhDuwu_mNQYc0Kv1ie7l-ASgVBE_-Z9hiQfcEMV3bgtg?e=Npim8O" alt="Payments - Mobile">
+        </div>
+        <div class="note">
+            Screenshots show navigation, tables, and action buttons not resizing or overflowing on mobile/tablet view.
+        </div>
+    </div>
+    <!-- Add more bugs below as needed -->
+</body>
+</html>
